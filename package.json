@@ -3,11 +3,33 @@
   "version": "1.0.0",
   "description": "ytsr wrapper",
   "main": "gtube.js",
+  "keywords": [
+    "ytdl",
+    "youtubedl",
+    "youtube",
+    "reactjs",
+    "ytsr",
+    "gtube"
+  ],
+  "bugs": {
+    "email": "grayhathacks10@gmail.com",
+    "url": "https://github.com/GrayHat12/graybot-desktop/issues"
+  },
+  "readme": "README.md",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/GrayHat12/gtube.git"
+  },
+  "homepage": "https://gray-hat.me/gtube",
+  "author": {
+    "name": "GrayHat",
+    "email": "grayhathacks10@gmail.com",
+    "url": "https://gray-hat.me/"
+  },
   "scripts": {
     "test": "jest  --runInBand --detectOpenHandles"
   },
-  "author": "GrayHat",
-  "license": "ISC",
+  "license": "MIT",
   "dependencies": {
     "ytdl-core": "^2.1.1",
     "ytsr": "^0.1.13"
