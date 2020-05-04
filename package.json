@@ -1,0 +1,18 @@
+{
+  "name": "gtube",
+  "version": "1.0.0",
+  "description": "ytsr wrapper",
+  "main": "gtube.js",
+  "scripts": {
+    "test": "jest  --runInBand --detectOpenHandles"
+  },
+  "author": "GrayHat",
+  "license": "ISC",
+  "dependencies": {
+    "ytdl-core": "^2.1.1",
+    "ytsr": "^0.1.13"
+  },
+  "devDependencies": {
+    "jest": "^25.5.4"
+  }
+}
