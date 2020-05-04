@@ -3,6 +3,7 @@ const ytdl = require('ytdl-core');
 
 /** 
  * @classdesc Class representing the options that are used with ytdl.
+ * @author GrayHat <grayhathacks10@gmail.com>
  */
 class Options {
     /**
@@ -44,6 +45,7 @@ class Options {
 }
 /** 
  * @classdesc Class representing a video Item.
+ * @author GrayHat <grayhathacks10@gmail.com>
  */
 class Item {
     /**
@@ -90,6 +92,7 @@ class Item {
 }
 /** 
  * @classdesc Class representing a YouTube instance.
+ * @author GrayHat <grayhathacks10@gmail.com>
  */
 class Gtube {
     /**

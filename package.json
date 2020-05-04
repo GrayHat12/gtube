@@ -20,7 +20,10 @@
     "type": "git",
     "url": "https://github.com/GrayHat12/gtube.git"
   },
-  "homepage": "https://gray-hat.me/gtube",
+  "publishConfig": { 
+    "registry": "https://npm.pkg.github.com/" 
+  },
+  "homepage": "https://grayhat12.github.io/gtube/",
   "author": {
     "name": "GrayHat",
     "email": "grayhathacks10@gmail.com",
