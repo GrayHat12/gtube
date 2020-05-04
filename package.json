@@ -20,6 +20,9 @@
     "type": "git",
     "url": "https://github.com/GrayHat12/gtube.git"
   },
+  "publishConfig": { 
+    "registry": "https://npm.pkg.github.com/@grayhat12" 
+  },
   "homepage": "https://grayhat12.github.io/gtube/",
   "author": {
     "name": "GrayHat",
@@ -28,7 +31,7 @@
   },
   "scripts": {
     "test": "jest  --runInBand --detectOpenHandles",
-    "document": "jsdoc gtube.js -r README.md -d ./docs"
+    "document" : "jsdoc gtube.js -r README.md -d ./docs"
   },
   "license": "MIT",
   "dependencies": {
