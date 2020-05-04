@@ -3,7 +3,7 @@
 
 # USAGE
 ~~~~
-const { Gtube, Options } = require("./../gtube");
+const { Gtube, Options } = require("gtube");
 var op = new Options(true,10,null);
 var ob = new Gtube("nf songs",op);
 ob.process().then((val)=>{ // search
