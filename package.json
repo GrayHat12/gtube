@@ -27,7 +27,8 @@
     "url": "https://gray-hat.me/"
   },
   "scripts": {
-    "test": "jest  --runInBand --detectOpenHandles"
+    "test": "jest  --runInBand --detectOpenHandles",
+    "document" : "jsdoc gtube.js -r README.md -d ./docs"
   },
   "license": "MIT",
   "dependencies": {
