@@ -1,6 +1,6 @@
 {
   "name": "gtube",
-  "version": "1.0.1",
+  "version": "1.0.2",
   "description": "ytsr wrapper",
   "main": "gtube.js",
   "keywords": [
@@ -28,7 +28,7 @@
   },
   "scripts": {
     "test": "jest  --runInBand --detectOpenHandles",
-    "document" : "jsdoc gtube.js -r README.md -d ./docs"
+    "document": "jsdoc gtube.js -r README.md -d ./docs"
   },
   "license": "MIT",
   "dependencies": {
