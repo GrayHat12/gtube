@@ -4,7 +4,7 @@
 
 # USAGE
 ## using events
-~~~~
+```css
 import { Gtube, Item } from "gtube";
 // can also : const { Gtube, Item } = require("gtube);
 var ob = new Gtube("nf songs");
@@ -19,9 +19,9 @@ ob.on("addedItem",(item)=>{ // called when a single item is found
   });
 });
 ob.process(true);
-~~~~
+```
 ## using promises
-~~~~
+```css
 import { Gtube, Item } from "gtube";
 // can also : const { Gtube, Item } = require("gtube);
 var ob = new Gtube("nf songs");
@@ -35,4 +35,4 @@ ob.process(true).then((val)=>{ // start searching
     }).catch(console.error);
   }
 }).catch(console.error);
-~~~~
+```
