@@ -17,7 +17,7 @@ describe("testing gtube",()=>{
             dic.val = val;
             dic.item = ob.items(0);
             dic.itemDataLinkLength = dic.item.data.link.length;
-            p = dic.item.getItemData(dic.item);
+            p = dic.item.getItemData();
             expect(val).toBe(true);
         });
     },20000);
