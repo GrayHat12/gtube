@@ -36,3 +36,5 @@ ob.process(true).then((val)=>{ // start searching
   }
 }).catch(console.error);
 ```
+# Gtube Complete Documentation
+[see documentation here](https://grayhat12.github.io/gtube/)
