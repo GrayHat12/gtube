@@ -1,5 +1,6 @@
 const ytsr = require('ytsr');
 const ytdl = require('ytdl-core');
+const events = require('events');
 
 /** 
  * @classdesc Class representing the options that are used with ytdl.
@@ -88,13 +89,42 @@ class Item {
      */
     constructor(item=this.data){
         this.data = item;
+        this.getItemData = this.getItemData.bind(this);
+        this.getBasicItemData = this.getBasicItemData.bind(this);
+    }
+    /**
+     * @description Get Basic ytdl information
+     * @param {Item} item - Video Item
+     * @access public
+     * @async
+     * @method
+     * @public
+     * @returns {Promise<Object>} ytdl.videoInfo
+     */
+    async getBasicItemData(){
+        var videoInfo = await ytdl.getBasicInfo(this.data.link);
+        return videoInfo;
+    }
+    /**
+    * @param {Item} item - Video Item
+    * @access public
+    * @description Get ytdl videoInfo
+    * @async
+    * @public
+    * @returns {Promise<Object>} ytdl.videoInfo
+    */
+   async getItemData(){
+       var videoInfo = await ytdl.getInfo(this.data.link);
+       //console.debug(videoInfo);
+       return videoInfo;
     }
 }
 /** 
  * @classdesc Class representing a YouTube instance.
  * @author GrayHat <grayhathacks10@gmail.com>
+ * @extends events.EventEmitter
  */
-class Gtube {
+class Gtube extends events.EventEmitter {
     /**
      * @member {String}
      * @default ""
@@ -129,12 +159,12 @@ class Gtube {
      * @param {String} search - Search string
      * @param {Options} options - Options
      */
-    constructor(search,options=this.#options){
+    constructor(search,options=new Options()){
+        super();
         this.#search = search;
         this.#options = options;
         this.process = this.process.bind(this);
         this._callback = this._callback.bind(this);
-        this.getItemData = this.getItemData.bind(this);
     }
     /**
      * @description this method searches the provided search string on Youtube for video results.
@@ -144,6 +174,8 @@ class Gtube {
      * @param {Boolean} newSearch - Defines if we are continuing search or starting a new one
      * @param {function} callback - Callback when searching is done. Done assign this until you're absolutely
      * sure what you're doing
+     * @fires cleared
+     * @fires addedItem
      * @throws {Error}
      * @returns {Promise<Boolean>} is search was successful or ended with error
      */
@@ -152,6 +184,11 @@ class Gtube {
         if(newSearch){
             this.#options.nextpageRef=null;
             this.#items = [];
+            /**
+             * Indicates that all items have been cleared
+             * @event Gtube#cleared
+             */
+            this.emit("cleared");
         }
         const val = await ytsr(this.#search,this.#options.getMap());
         try{
@@ -175,47 +212,38 @@ class Gtube {
             if(items[i]['type']=='video'){
                 var item = new Item(items[i]);
                 this.#items.push(item);
+                /**
+                 * A new item has been added
+                 * @event Gtube#addedItem
+                 * @property {Item} item
+                 */
+                this.emit("addedItem",item);
             }
         }
     }
     /**
-    * @param {Item} item - Video Item
-    * @access public
-    * @description Get ytdl videoInfo
-    * @async
-    * @public
-    * @returns {Promise<Object>} ytdl.videoInfo
-    */
-    async getItemData(item){
-        var videoInfo = await ytdl.getInfo(item.data.link);
-        //console.debug(videoInfo);
-        return videoInfo;
-    }
-    /**
-     * @description Get Basic ytdl information
-     * @param {Item} item - Video Item
-     * @access public
-     * @async
-     * @method
-     * @public
-     * @returns {Object} ytdl.videoInfo
-     */
-    async getBasicItemData(item){
-        var videoInfo = await ytdl.getBasicInfo(item.data.link);
-        return videoInfo;
-    }
-    /**
      * @description get current list of items
      * @public
+     * @returns {Item}
      * @method
      */
-    get items(){
-        return this.#items;
+    items(index){
+        return this.#items[index];
+    }
+    /**
+     * @description length of items
+     * @public
+     * @returns {Number}
+     * @method
+     */
+    get size(){
+        return this.#items.length;
     }
     /**
      * @description get current Options
      * @method
      * @public
+     * @returns {Options}
      */
     get options(){
         return this.#options;
@@ -224,6 +252,7 @@ class Gtube {
      * @description get current search string
      * @method
      * @public
+     * @returns {String}
      */
     get search(){
         return this.#search;
