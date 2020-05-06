@@ -169,7 +169,7 @@ class Gtube extends events.EventEmitter {
      * @public
      * @access public
      * @param {Boolean} newSearch - Defines if we are continuing search or starting a new one
-     * @param {function} callback - Callback when searching is done. Done assign this until you're absolutely
+     * @param {object} callback - Callback when searching is done. Done assign this until you're absolutely
      * sure what you're doing
      * @fires cleared
      * @fires addedItem
