@@ -15,7 +15,7 @@ describe("testing gtube",()=>{
     it("running search",()=>{
         return p.then((val)=>{
             dic.val = val;
-            dic.item = ob.items(0);
+            dic.item = ob.item(0);
             dic.itemDataLinkLength = dic.item.data.link.length;
             p = dic.item.getItemData();
             expect(val).toBe(true);

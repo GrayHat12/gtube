@@ -28,9 +28,9 @@ var ob = new Gtube("nf songs");
 
 ob.process(true).then((val)=>{ // start searching
   if(val){ // search successful
-    // ob.items(0) returns the first Item object from search
+    // ob.item(0) returns the first Item object from search
     // use ob.size for getting the size of Item list
-    ob.items(0).getItemData().then((vidInfo)=>{ // get item's video info
+    ob.item(0).getItemData().then((vidInfo)=>{ // get item's video info
       console.log(vidInfo); // log video info
     }).catch(console.error);
   }

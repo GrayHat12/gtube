@@ -1,6 +1,24 @@
+"use strict";
 const ytsr = require('ytsr');
 const ytdl = require('ytdl-core');
 const events = require('events');
+
+const Majordata = {
+    type:'video',
+    live:false,
+    title:'',
+    link:'',
+    thumbnail:'',
+    author:{
+        name:'',
+        ref:'',
+        verified:false
+    },
+    description:'',
+    views:0,
+    duration:'00:00',
+    uploaded_at:'',
+}
 
 /** 
  * @classdesc Class representing the options that are used with ytdl.
@@ -8,27 +26,24 @@ const events = require('events');
  */
 class Options {
     /**
-     * @default true
-     */
-    safeSearch=true;
-    /**
-     * @default 20
-     */
-    limit=20;
-    /**
-     * @default null
-     */
-    nextpageRef=null;
-    /**
      * @description Represents an Option
      * @constructor
-     * @param {Boolean} safeSearch - filter adult content
-     * @param {int} limit - maximum results at a time
-     * @param {String} nextpageRef - reference from previous page
+     * @param {Boolean} safeSearch - filter adult content, @default true
+     * @param {int} limit - maximum results at a time, @default 20
+     * @param {String} nextpageRef - reference from previous page @default null
      */
     constructor(safeSearch=true,limit=20,nextpageRef=null){
+        /**
+         * @default true
+         */
         this.safeSearch = safeSearch;
+        /**
+         * @default 20
+         */
         this.limit = limit;
+        /**
+         * @default null
+         */
         this.nextpageRef = nextpageRef;
         this.getMap = this.getMap.bind(this);
     }
@@ -50,7 +65,12 @@ class Options {
  */
 class Item {
     /**
-     * @default {
+     * @constructor
+     * @param {Object} item - Contains the video data
+     */
+    constructor(item = Majordata){
+        /**
+         * @default {
             type:'video',
             live:false,
             title:'',
@@ -66,28 +86,7 @@ class Item {
             duration:'00:00',
             uploaded_at:'',
         }
-     */
-    data = {
-        type:'video',
-        live:false,
-        title:'',
-        link:'',
-        thumbnail:'',
-        author:{
-            name:'',
-            ref:'',
-            verified:false
-        },
-        description:'',
-        views:0,
-        duration:'00:00',
-        uploaded_at:'',
-    }
-    /**
-     * @constructor
-     * @param {Object} item - Contains the video data
-     */
-    constructor(item=this.data){
+         */
         this.data = item;
         this.getItemData = this.getItemData.bind(this);
         this.getBasicItemData = this.getBasicItemData.bind(this);
@@ -126,34 +125,6 @@ class Item {
  */
 class Gtube extends events.EventEmitter {
     /**
-     * @member {String}
-     * @default ""
-     * @description Stores your search string
-     * @private
-     */
-    #search="";
-    /**
-     * @member {Options}
-     * @description Stores the Options object to be sent with ytdl
-     * @default new Options()
-     * @private
-     */
-    #options=new Options();
-    /**
-     * @member {Boolean}
-     * @default false
-     * @description if ytdl had an error
-     * @private
-     */
-    #error=false;
-    /**
-     * @member {Array}
-     * @default new Array<Item>();
-     * @description Item list retrieved on search
-     * @private
-     */
-    #items=[];
-    /**
      * @description Represents a YouTube instance
      * @constructor
      * @param {String} search - Search string
@@ -161,8 +132,34 @@ class Gtube extends events.EventEmitter {
      */
     constructor(search,options=new Options()){
         super();
-        this.#search = search;
-        this.#options = options;
+        /**
+         * @member {String}
+         * @default ""
+         * @description Stores your search string
+         * @private
+         */
+        this._search = search;
+        /**
+         * @member {Options}
+         * @description Stores the Options object to be sent with ytdl
+         * @default new Options()
+         * @private
+         */
+        this._options = options;
+        /**
+         * @member {Boolean}
+         * @default false
+         * @description if ytdl had an error
+         * @private
+         */
+        this._error = false;
+        /**
+         * @member {Array}
+         * @default new Array<Item>();
+         * @description Item list retrieved on search
+         * @private
+         */
+        this._items = [];
         this.process = this.process.bind(this);
         this._callback = this._callback.bind(this);
     }
@@ -180,24 +177,24 @@ class Gtube extends events.EventEmitter {
      * @returns {Promise<Boolean>} is search was successful or ended with error
      */
     async process(newSearch=false,callback=this._callback){
-        this.#error=false;
+        this._error=false;
         if(newSearch){
-            this.#options.nextpageRef=null;
-            this.#items = [];
+            this._options.nextpageRef=null;
+            this._items = [];
             /**
              * Indicates that all items have been cleared
              * @event Gtube#cleared
              */
             this.emit("cleared");
         }
-        const val = await ytsr(this.#search,this.#options.getMap());
+        const val = await ytsr(this._search,this._options.getMap());
         try{
             callback(val);
         }catch(ex){
-            this.#error = true;
+            this._error = true;
             throw new Error(ex+'\n'+val)
         }
-        return !this.#error;
+        return !this._error;
     }
     /**
      * @description This is the default callback for this.process
@@ -207,11 +204,11 @@ class Gtube extends events.EventEmitter {
      */
     _callback(result){
         var items = result['items'];
-        this.#options.nextpageRef = result['nextpageRef'];
+        this._options.nextpageRef = result['nextpageRef'];
         for(var i=0;i<items.length;i++){
             if(items[i]['type']=='video'){
                 var item = new Item(items[i]);
-                this.#items.push(item);
+                this._items.push(item);
                 /**
                  * A new item has been added
                  * @event Gtube#addedItem
@@ -222,13 +219,13 @@ class Gtube extends events.EventEmitter {
         }
     }
     /**
-     * @description get current list of items
+     * @description get item at index
      * @public
      * @returns {Item}
      * @method
      */
-    items(index){
-        return this.#items[index];
+    item(index){
+        return this._items[index];
     }
     /**
      * @description length of items
@@ -237,7 +234,7 @@ class Gtube extends events.EventEmitter {
      * @method
      */
     get size(){
-        return this.#items.length;
+        return this._items.length;
     }
     /**
      * @description get current Options
@@ -246,7 +243,7 @@ class Gtube extends events.EventEmitter {
      * @returns {Options}
      */
     get options(){
-        return this.#options;
+        return this._options;
     }
     /**
      * @description get current search string
@@ -255,7 +252,7 @@ class Gtube extends events.EventEmitter {
      * @returns {String}
      */
     get search(){
-        return this.#search;
+        return this._search;
     }
 }
 
