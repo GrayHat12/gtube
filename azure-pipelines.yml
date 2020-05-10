@@ -19,6 +19,6 @@ steps:
     npm install -g npm
     npm cache clean --force
     npm i
-    npm i jest
+    npm install -g jest
     npm run test
   displayName: 'npm install and test'
