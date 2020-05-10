@@ -12,12 +12,12 @@ pool:
 steps:
 - task: NodeTool@0
   inputs:
-    versionSpec: '10.x'
+    versionSpec: '12.x'
   displayName: 'Install Node.js'
 
 - script: |
     npm install -g npm
-    npm cache clean
+    npm cache clean --force
     npm install
     npm run test
   displayName: 'npm install and test'
