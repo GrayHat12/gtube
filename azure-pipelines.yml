@@ -16,8 +16,6 @@ steps:
   displayName: 'Install Node.js'
 
 - script: |
-    npm install -g npm
-    npm cache clean --force
     npm i
     npm install -g jest
     npm run test
