@@ -1,17 +1,16 @@
-const { Gtube, Item, Options } = require("./../gtube");
+const Gtube = require("../lib/gtube");
 
-var op = new Options(true,10,null);
-var ob = new Gtube("nf songs",op);
+var ob = new Gtube("nf");
 
 var dic = {
   val: false,
   itemDataLinkLength: 0,
   formatLength: 0,
-  item : new Item()
+  item : null
 };
 
 describe("testing gtube",()=>{
-    let p = ob.process();
+    let p = ob.process(true);
     it("running search",()=>{
         return p.then((val)=>{
             dic.val = val;

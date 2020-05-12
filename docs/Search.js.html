@@ -1,0 +1,365 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="utf-8">
+    <title>GTube: Source: Search.js</title>
+
+    <script src="scripts/prettify/prettify.js"> </script>
+    <script src="scripts/prettify/lang-css.js"> </script>
+    <!--[if lt IE 9]>
+      <script src="//html5shiv.googlecode.com/svn/trunk/html5.js"></script>
+    <![endif]-->
+    <link type="text/css" rel="stylesheet" href="styles/prettify-tomorrow.css">
+    <link type="text/css" rel="stylesheet" href="styles/jsdoc-default.css">
+</head>
+
+<body>
+
+<div id="main">
+
+    <h1 class="page-title">Source: Search.js</h1>
+
+    
+
+
+
+    
+    <section>
+        <article>
+            <pre class="prettyprint source linenums"><code>const axios = require("axios");
+const cheerio = require("cheerio");
+const htmlparser2 = require("htmlparser2");
+const regex = /&lt;script>\s*window\["ytInitialData"\]\s*=\s*({.*})/gm;
+
+const playlistUrl =
+  "https://www.youtube.com/playlist?list=PL4fGSI1pDJn6puJdseH2Rt9sMvt9E2M4i";
+const options = {
+  url: 'https://cors-grayhat.herokuapp.com/'+playlistUrl,
+  headers: {
+    "User-Agent":
+      "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/81.0.4044.129 Safari/537.36",
+    dnt: 1,
+  },
+  ctoken: null,
+  itct: null
+};
+class SearchPlaylist {
+  constructor(playlist = playlistUrl) {
+    this._options = options;
+    this._options.url = playlist;
+    this.search = this.search.bind(this);
+    this._format = this._format.bind(this);
+    this._getData = this._getData.bind(this);
+    this._parsePlaylistItems = this._parsePlaylistItems.bind(this);
+  }
+  _format(str) {
+    let m;
+    while ((m = regex.exec(str)) !== null) {
+      if (m.index === regex.lastIndex) {
+        regex.lastIndex++;
+      }
+      let out = m.pop();
+      return out;
+    }
+    return null;
+  }
+  _getData(str) {
+    var stack = [];
+    var valids = [
+      ["[]", "{}"],
+      ["{", "}", "[", "]"],
+    ];
+    var out = "";
+    var symbols = "";
+    var inInvCommas = [-1, ""];
+    //console.log(str.substring(0, 20));
+    for (var i = 0; i &lt; str.length; i++) {
+      if (stack.length == 0 &amp;&amp; i > 0) {
+        //return [out,symbols];
+        return out;
+      }
+      var curChar = str.charAt(i);
+      if (inInvCommas[0] > 0) {
+        if (curChar == inInvCommas[1] &amp;&amp; str.charAt(i - 1) != "\\") {
+          inInvCommas = [-1, ""];
+        }
+        out += curChar;
+        continue;
+      }
+      if (valids[1].includes(curChar)) {
+        stack.push(curChar);
+      }
+      if (i > 0) {
+        if (curChar == '"' &amp;&amp; str.charAt(i - 1) != "\\") {
+          inInvCommas = [i, '"'];
+        }
+      }
+      if (stack.length > 1) {
+        if (
+          valids[0].includes(
+            `${stack[stack.length - 2]}${stack[stack.length - 1]}`
+          )
+        ) {
+          //console.log(`${stack[stack.length-2]}${stack[stack.length-1]}`);
+          symbols += stack.pop();
+          symbols += stack.pop();
+        }
+      }
+      out += curChar;
+    }
+    //console.log("weird");
+    //console.log(stack);
+    //return [out,symbols];
+    return out;
+  }
+  _parsePlaylistItems(jsonData){
+      var contents = jsonData['contents']['twoColumnBrowseResultsRenderer']['tabs'][0]['tabRenderer']['content']['sectionListRenderer']['contents'][0]['itemSectionRenderer']['contents'][0]['playlistVideoListRenderer']['contents'];
+      var items = [];
+      for(var i=0;i&lt;contents.length;i++){
+          var rawItem = contents[i];
+          let playlistVideoRenderer;
+          try{
+              playlistVideoRenderer = rawItem['playlistVideoRenderer'];
+          }catch(ex){
+              continue;
+          }
+          var thumb = `https://i.ytimg.com/vi/${playlistVideoRenderer['videoId']}/hqdefault.jpg`
+          var item = {
+            type:'video',
+            title:playlistVideoRenderer['title']['simpleText'],
+            link:'https://www.youtube.com/watch?v='+playlistVideoRenderer['videoId'],
+            thumbnail:thumb,
+            author:{
+                name:playlistVideoRenderer['shortBylineText']['runs'][0]['text'],
+                ref:'https://www.youtube.com'+playlistVideoRenderer['shortBylineText']['runs'][0]['navigationEndpoint']['commandMetadata']['webCommandMetadata']['url'],
+                verified:false
+            },
+            description:'',
+            views:0,
+            duration:playlistVideoRenderer['lengthText']['simpleText'],
+            uploaded_at:'',
+        }
+        items.push(item);
+      }
+      return items;
+  }
+  async searchPlaylist() {
+      var res = await axios.default.get(this._options.url,{headers: options.headers});
+      var data = htmlparser2.parseDOM(res.data, { normalizeWhitespace: true });
+      var data2 = cheerio.load(data);
+      var out = data2.html();
+      out = out.replace(/\\\\/g, "\\");
+      var formatted = this._format(out);
+      if(formatted==null) throw new Error("failed code : 92");
+      var parsed = this._getData(formatted);
+      var jsonData = JSON.parse(parsed);
+      return jsonData;
+  }
+}
+
+/** 
+ * @classdesc Class representing a Search instance.
+ * @author GrayHat &lt;grayhathacks10@gmail.com>
+ */
+class SearchTerm {
+  constructor(term='nf songs',ref=options){
+    /**
+     * @member {Object}
+     * @description Data to be passed
+     * @private
+     */
+    this._options = ref;
+    /**
+     * @member {String}
+     * @description Search url
+     * @private
+     */
+    this._url = 'https://www.youtube.com/results?pbj=1&amp;search_query='+encodeURI(term);
+    //console.log('search',this._options.ctoken);
+    if(this._options.ctoken!=null){
+      this._url += '&amp;ctoken='+this._options.ctoken;
+      this._url += '&amp;continuation='+this._options.ctoken;
+    }
+    if(this._options.itct!=null){
+      this._url += '&amp;itct='+this._options.itct;
+    }
+    this.search = this.search.bind(this);
+    /**
+     * @member {Object}
+     * @description Headers to be used
+     * @private
+     */
+    this._headers = {
+      'Accept-Encoding': 'gzip',
+      'x-youtube-client-name': '1',
+      'x-youtube-client-version': '2.20200508.00.01'
+    }
+    /**
+     * @member {Object}
+     * @description Recieved Data
+     * @private
+     */
+    this._data = {};
+  }
+  /**
+   * @description this method searches for YT videos
+   * @async
+   * @public
+   * @access public
+   * @returns {Promise&lt;{items:Array&lt;Object>,nextpageRef:Object}>}
+   */
+  async search(){
+    var res = await axios.default.get(this._url,{headers:this._headers});
+    this._data = res.data;
+    var items = [];
+    var dat=this._data[1]['response']['contents']['twoColumnSearchResultsRenderer']['primaryContents']['sectionListRenderer']['contents'];
+    dat = dat[0]['itemSectionRenderer']['contents'];
+    for(var i=0;i&lt;dat.length;i++){
+      var itm = dat[i]['videoRenderer'];
+      if(!itm) continue;
+      var itemOutline = {
+        type:'video',
+        live:false,
+        title:'',
+        link:'',
+        thumbnail:'',
+        author:{
+          name:'',
+          ref:'',
+          verified:false
+        },
+        description:'',
+        views:0,
+        duration:'00:00',
+        uploaded_at:'',
+      };
+      var newItem = itemOutline;
+      newItem.type = 'video';
+      newItem.title = itm['title']['runs'][0]['text'];
+      newItem.link = `https://www.youtube.com/watch?v=${itm['videoId']}`
+      newItem.thumbnail = itm['thumbnail']['thumbnails'][0]['url'].substring(0,49);
+      newItem.author.name = itm['ownerText']['runs'][0]['text'];
+      newItem.author.ref = 'https://www.youtube.com'+itm['ownerText']['runs'][0]['navigationEndpoint']['commandMetadata']['webCommandMetadata']['url'];
+      try{
+        newItem.author.verified = itm['ownerBadges']['metadataBadgeRenderer']['icon']['iconType']=='OFFICIAL_ARTIST_BADGE' ? true:false;
+      }catch(err){
+        newItem.author.verified = false;
+        //console.log(err);
+      }
+      var desc = '';
+      for(var j=0;j&lt;itm['descriptionSnippet']['runs'].length;j++){
+        var txt = itm['descriptionSnippet']['runs'][j]['text'];
+        desc+=txt;
+      }
+      newItem.description = desc;
+      newItem.views = itm['viewCountText']['simpleText'];
+      newItem.duration = itm['lengthText']['simpleText'];
+      newItem.uploaded_at = itm['publishedTimeText']['simpleText'];
+      items.push(newItem);
+      //console.log('search190',newItem.title);
+    }
+    var nref = this._data[1]['response']['contents']['twoColumnSearchResultsRenderer']['primaryContents']['sectionListRenderer']['contents'][0]['itemSectionRenderer']['continuations'][0]['nextContinuationData'];
+    this._options.ctoken = nref['continuation'];
+    this._options.itct = nref['clickTrackingParams'];
+    return {
+      items: items,
+      nextpageRef: this._options,
+    };
+  }
+  /**
+   * @description this method continues search for YT videos
+   * @async
+   * @public
+   * @access public
+   * @returns {Promise&lt;{items:Array&lt;Object>,nextpageRef:Object}>}
+   */
+  async ContSearch(){
+    var res = await axios.default.get(this._url,{headers:this._headers});
+    this._data = res.data;
+    var items = [];
+    var dat=this._data[1]['response']['continuationContents']['itemSectionContinuation']['contents'];
+    for(var i=0;i&lt;dat.length;i++){
+      var itm = dat[i]['videoRenderer'];
+      if(!itm) continue;
+      var itemOutline = {
+        type:'video',
+        live:false,
+        title:'',
+        link:'',
+        thumbnail:'',
+        author:{
+          name:'',
+          ref:'',
+          verified:false
+        },
+        description:'',
+        views:0,
+        duration:'00:00',
+        uploaded_at:'',
+      };
+      var newItem = itemOutline;
+      newItem.type = 'video';
+      newItem.title = itm['title']['runs'][0]['text'];
+      newItem.link = `https://www.youtube.com/watch?v=${itm['videoId']}`
+      newItem.thumbnail = itm['thumbnail']['thumbnails'][0]['url'].substring(0,49);
+      newItem.author.name = itm['ownerText']['runs'][0]['text'];
+      newItem.author.ref = 'https://www.youtube.com'+itm['ownerText']['runs'][0]['navigationEndpoint']['commandMetadata']['webCommandMetadata']['url'];
+      try{
+        newItem.author.verified = itm['ownerBadges']['metadataBadgeRenderer']['icon']['iconType']=='OFFICIAL_ARTIST_BADGE' ? true:false;
+      }catch(err){
+        newItem.author.verified = false;
+        //console.log(err);
+      }
+      var desc = '';
+      for(var j=0;j&lt;itm['descriptionSnippet']['runs'].length;j++){
+        var txt = itm['descriptionSnippet']['runs'][j]['text'];
+        desc+=txt;
+      }
+      newItem.description = desc;
+      newItem.views = itm['viewCountText']['simpleText'];
+      newItem.duration = itm['lengthText']['simpleText'];
+      newItem.uploaded_at = itm['publishedTimeText']['simpleText'];
+      //console.log(newItem.title);
+      items.push(newItem);
+      //console.log('search190',newItem.title);
+    }
+    var nref = this._data[1]['response']['continuationContents']['itemSectionContinuation']['continuations'][0]['nextContinuationData'];
+    this._options.ctoken = nref['continuation'];
+    this._options.itct = nref['clickTrackingParams'];
+    return {
+      items: items,
+      nextpageRef: this._options,
+    };
+  }
+  /**
+   * @public
+   * @member
+   * @description returns the url being used to search
+   */
+  get url(){
+    return this._url;
+  }
+}
+module.exports = SearchTerm;</code></pre>
+        </article>
+    </section>
+
+
+
+
+</div>
+
+<nav>
+    <h2><a href="index.html">Home</a></h2><h3>Classes</h3><ul><li><a href="Gtube.html">Gtube</a></li><li><a href="Item.html">Item</a></li><li><a href="SearchTerm.html">SearchTerm</a></li></ul><h3>Events</h3><ul><li><a href="Gtube.html#event:addedItem">addedItem</a></li><li><a href="Gtube.html#event:cleared">cleared</a></li></ul>
+</nav>
+
+<br class="clear">
+
+<footer>
+    Documentation generated by <a href="https://github.com/jsdoc/jsdoc">JSDoc 3.6.4</a> on Tue May 12 2020 15:34:41 GMT+0530 (India Standard Time)
+</footer>
+
+<script> prettyPrint(); </script>
+<script src="scripts/linenumber.js"> </script>
+</body>
+</html>

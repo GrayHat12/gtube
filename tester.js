@@ -1,6 +1,5 @@
-const { Gtube, Item } = require("./../gtube");
-var ob = new Gtube("nf songs");
-const fs = require('fs')
+const Gtube = require("./lib/gtube");
+const fs = require('fs');
 
 const storeData = (data, path) => {
   try {
@@ -9,17 +8,18 @@ const storeData = (data, path) => {
     console.error(err)
   }
 }
+var first = true;
+var ob = new Gtube("nf");
 ob.on("cleared",()=>{
-  console.log("removed all items");
+  console.log("cleared");
 });
-ob.on("addedItem",(item=new Item())=>{
-  console.log(item.data.title);
-  if(ob.size>1){
-    return;
-  }
-  item.getBasicItemData().then((val)=>{
-    //console.log(val);
-    storeData(val,"data.json");
-  }).catch(console.error);
+ob.on("addedItem",(item)=>{
+  console.log(first,item.data.title);
 });
-ob.process(true);
+ob.process(true).then((val)=>{
+  console.log("done",val);
+  first = false;
+  ob.process(false).then((val)=>{
+    console.log('done second');
+  });
+});
