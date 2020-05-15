@@ -9,17 +9,19 @@ const storeData = (data, path) => {
   }
 }
 var first = true;
-var ob = new Gtube("nf");
+var ob = new Gtube("nf songs");
 ob.on("cleared",()=>{
   console.log("cleared");
 });
 ob.on("addedItem",(item)=>{
   console.log(first,item.data.title);
+  storeData(item,'item.json');
 });
 ob.process(true).then((val)=>{
   console.log("done",val);
   first = false;
-  ob.process(false).then((val)=>{
+  ob._search = "eminem darling";
+  ob.process(true).then((val)=>{
     console.log('done second');
   });
 });

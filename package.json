@@ -1,7 +1,7 @@
 {
   "name": "gtube",
-  "version": "1.1.0",
-  "description": "ytsr wrapper",
+  "version": "1.1.1",
+  "description": "youtube complete search and play library",
   "main": "./lib/gtube.js",
   "keywords": [
     "ytdl",
