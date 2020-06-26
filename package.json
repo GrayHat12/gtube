@@ -19,8 +19,8 @@
     "type": "git",
     "url": "https://github.com/GrayHat12/gtube.git"
   },
-  "publishConfig": { 
-    "registry": "https://npm.pkg.github.com/@grayhat12" 
+  "publishConfig": {
+    "registry": "https://npm.pkg.github.com/@grayhat12"
   },
   "homepage": "https://grayhat12.github.io/gtube/",
   "author": {
@@ -30,13 +30,15 @@
   },
   "scripts": {
     "test": "jest  --runInBand --detectOpenHandles",
-    "document": "jsdoc ./lib/ -r README2.md -d ./docs"
+    "document": "jsdoc ./lib/ -r README2.md -d ./docs",
+    "tsc": "tsc"
   },
   "license": "MIT",
   "dependencies": {
     "axios": "^0.19.2",
     "cheerio": "^1.0.0-rc.3",
     "htmlparser2": "^4.1.0",
+    "typescript": "^3.9.5",
     "ytdl-core": "^2.1.1"
   },
   "devDependencies": {

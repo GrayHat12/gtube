@@ -110,3 +110,4 @@ data.json
 dat.json
 *.old.js
 item.json
+__test__/json.json
